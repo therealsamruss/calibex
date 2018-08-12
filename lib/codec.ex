@@ -33,10 +33,10 @@ defmodule Calibex.Codec do
   def decode(bin), do: bin |> decode_lines |> decode_blocks
 
   def decode_lines(bin) do # split by unfolded line
-    bin |> String.splitter(["\r\n","\n"]) |> Enum.flat_map_reduce(nil,fn 
+    bin |> String.splitter(["\r\n","\n"]) |> Enum.flat_map_reduce(nil,fn
       " "<>rest,acc-> {[],acc<>rest}
       line,prevline-> {prevline && [String.replace(prevline,"\\n","\n")] || [],line}
-    end) |> elem(0) 
+    end) |> elem(0)
   end
   def decode_blocks([]), do: []
   def decode_blocks(["BEGIN:"<>binkey|rest]) do # decode each block as a list
@@ -53,14 +53,14 @@ defmodule Calibex.Codec do
     [keyprops,val] = String.split(prop,":",parts: 2)
     case String.split(keyprops,";") do
       [key]-> {decode_key(key),val}
-      [key|props]-> 
+      [key|props]->
         props = props |> Enum.map(fn prop->
-          [k,v] = String.split(prop,"=")
+          [k,v] = String.split(prop,"=", parts: 2)
           {decode_key(k),v}
         end)
-        {decode_key(key),[{:value,val}|props]} 
+        {decode_key(key),[{:value,val}|props]}
     end
   end
-  def decode_key(bin), do: 
+  def decode_key(bin), do:
     bin |> String.replace("-","_") |> String.downcase |> String.to_atom
 end
